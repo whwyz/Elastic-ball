@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript运动</title>
+    <style>
+        div{
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100px;
+            height: 100px;
+            background: #b25f27;
+            border-radius: 50%;
+        }
+        span{
+            width: 16px;
+            height: 16px;
+            background: black;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <div></div>
+<script>
+    var oDiv = document.getElementsByTagName("div")[0];
+    //小球左上方的坐标值
+    var lastX = oDiv.offsetLeft,
+        lastY = oDiv.offsetTop;
+
+    //拖拽小球的函数
+    oDiv.onmousedown = function (e) {
+        clearInterval(this.timer);
+        var event = e || window.event;
+        //disX/Y获取的是鼠标点击小球的位置
+        var disX = event.clientX - this.offsetLeft;   //offsetLeft 小球相对于父级   -  clientx 鼠标点击位置的x坐标
+        var disY = event.clientY - this.offsetTop;
+        //获取oDiv对象
+        var that = this;
+        var iSpeedX = 0;
+        var iSpeedY = 0;
+        document.onmousemove = function(e){
+            var newLeft = e.clientX - disX;     //clientx 鼠标移动的x坐标     -   鼠标位置到小球边沿的距离=   newLeft  相当于新的offsetLeft
+            var newTop = e.clientY - disY;
+            //由拖动的距离、方向，决定小球的初始速度和方向
+            iSpeedX = newLeft - lastX;    //   时时更新的offsetLeft   - 渲染之后小球的offsetLeft   =    实现速度
+            iSpeedY = newTop - lastY;
+            lastX = newLeft;
+            lastY = newTop;
+            that.style.left = newLeft + "px";
+            that.style.top = newTop + "px";
+        };
+        //松开鼠标时，将前两个事件置空
+        document.onmouseup = function(){
+            document.onmousemove = null;
+            document.onmouseup = null;
+            //运行小球运动函数
+            startMove(that,iSpeedX,iSpeedY);
+        }
+
+    };
+
+    //小球碰撞运动函数
+    function startMove(obj,iSpeedX,iSpeedY) {
+        clearInterval(obj.timer);
+        //在Y方向上，给一个重力
+        var g= 4;
+        obj.timer = setInterval(function () {
+            //在Y方向上通过g不断加速
+            iSpeedY += g;
+
+            var newLeft = obj.offsetLeft + iSpeedX;    //小球距父级的位置   +    速度差  = 时时的offoset
+            var newTop = obj.offsetTop + iSpeedY;
+            if (newTop >= document.documentElement.clientHeight - obj.offsetHeight){      //浏览器页面高度 - 小球高度
+                iSpeedY *= -1;    //反弹
+                iSpeedY *= 0.8;
+                iSpeedX *= 0.96;
+                newTop = document.documentElement.clientHeight - obj.offsetHeight;
+            }
+            if (newTop <= 0){
+                iSpeedY *= -1;
+                newTop = 0;
+                iSpeedY *= 0.8;
+                iSpeedX *= 0.97;
+            }
+            if (newLeft >= document.documentElement.clientWidth - obj.offsetWidth){
+                iSpeedX *= -1;
+                iSpeedY *= 0.8;
+                iSpeedX *= 0.97;
+                newLeft = document.documentElement.clientWidth - obj.offsetWidth;
+            }
+            if (newLeft <= 0){
+                iSpeedX *= -1;
+                newLeft = 0;
+                iSpeedY *= 0.8;
+                iSpeedX *= 0.96;
+            }
+
+            if (Math.abs(iSpeedX) < 1){
+                iSpeedX = 0;
+            }
+            if (Math.abs(iSpeedY) < 2){
+                iSpeedY = 0;
+
+            }
+            console.log(iSpeedX,iSpeedY)
+            if(iSpeedX == 0 && iSpeedY == 0 && newTop == document.documentElement.clientHeight - obj.offsetHeight){
+                clearInterval(obj.timer);
+            }
+
+
+
+            obj.style.left = newLeft + "px";
+            obj.style.top = newTop + "px";
+        },30)
+    }
+</script>
+</body>
+</html>
